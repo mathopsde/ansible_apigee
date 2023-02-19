@@ -1,0 +1,10 @@
+{
+    "docs": "https://docs.ansible.com/ansible-core/2.14/dev_guide/testing/sanity/import.html", 
+    "results": [
+        {
+            "message": "The test `ansible-test sanity --test import --python 3.11` [[explain](https://docs.ansible.com/ansible-core/2.14/dev_guide/testing/sanity/import.html)] failed with 4 errors:", 
+            "output": "plugins/modules/apigee_env.py:13:0: traceback: ModuleNotFoundError: No module named 'pyapigee'\nplugins/modules/apigee_keystore.py:13:0: traceback: ModuleNotFoundError: No module named 'pyapigee'\nplugins/modules/apigee_org.py:13:0: traceback: ModuleNotFoundError: No module named 'pyapigee'\nplugins/modules/apigee_user_role.py:13:0: traceback: ModuleNotFoundError: No module named 'pyapigee'"
+        }
+    ], 
+    "verified": false
+}
