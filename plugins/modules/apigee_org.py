@@ -67,8 +67,8 @@ def run_module():
         apigee.associateOrg(org, 'gateway')
         apigee.addEnv(org, env)
         response = apigee.addAdmin(org, orgadmin)
-        apigee.addAnalytics(org, env)
-        apigee.addToAnalytics(org,env)
+        response = apigee.addAnalytics(org, env)
+        
 
     if mode == 'delete':
         envs = apigee.getEnv(org)
@@ -77,7 +77,7 @@ def run_module():
             apigee.deleteEnv(org, env)
         apigee.deleteOrg(org)
 
-    result['message'] = response.status_code
+    result['message'] = response.text
     result['org'] = org
     result['env'] = env
     result['admin'] = orgadmin

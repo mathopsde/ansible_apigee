@@ -21,10 +21,12 @@ def run_module():
         adminuser=dict(type='str', required=True),
         adminpwd=dict(type='str', required=True),
         mgmtserver=dict(type='str', required=True),
-        orgadmin=dict(type='str', required=True),
+        mgmtport=dict(type='str', required=False, default='8080'),
+        #orgadmin=dict(type='str', required=True),
         org=dict(type='str', required=True),
         env=dict(type='str', required=True),
-        mgmtport=dict(type='str', required=False, default='8080')
+        keystore=dict(type='str', required=True),
+        keyalias=dict(type='str', required=True)
     )
 
     result = dict(
@@ -51,14 +53,16 @@ def run_module():
     adminpwd = module.params['adminpwd']
     org = module.params['org']
     env = module.params['env']
-    orgadmin = module.params['orgadmin']
+    #orgadmin = module.params['orgadmin']
+    keystore = module.params['keystore']
+    keyalias = module.params['keyalias']
 
     # init apigee object
 
     apigee = pyapigee.apigee(method, mgmtserver, mgmtport, adminuser, adminpwd)
 
     if mode == 'create':
-        apigee.createOrg(org)
+        apigee.createKeystore(org,env,keystore)
         apigee.associateOrg(org, 'gateway')
         apigee.addEnv(org, env)
         apigee.addAdmin(org, orgadmin)
