@@ -1,0 +1,93 @@
+- name: poweron
+  block:
+    
+    - name: start virtual maschines
+      shell:
+        cmd: "qm start {{ item.value.vmid }}"
+      loop: "{{apigee_hosts|dict2items}}"
+      ignore_errors: true
+      
+    - name: wait for online
+      wait_for:
+        timeout: 60
+      delegate_to: localhost
+  
+  when:
+    - inventory_hostname in groups.proxmox
+
+  tags: 
+    - start_apigee
+
+- name: start apigee
+  block:
+
+    - name: start cassandra
+      shell:
+        cmd: /opt/apigee/apigee-service/bin/apigee-service apigee-cassandra start
+      when:
+        inventory_hostname in groups.cassandra
+
+    - name: start openldap
+      shell:
+        cmd: /opt/apigee/apigee-service/bin/apigee-service apigee-openldap start
+      when:
+        inventory_hostname in groups.mgmt
+
+    - name: start postgresql
+      shell:
+        cmd: /opt/apigee/apigee-service/bin/apigee-service apigee-postgresql start
+      when:
+        inventory_hostname in groups.analytics
+
+    - name: start qpidd
+      shell:
+        cmd: /opt/apigee/apigee-service/bin/apigee-service apigee-qpidd start
+      when:
+        inventory_hostname in groups.analytics
+
+    - name: start zookeeper
+      shell:
+        cmd: /opt/apigee/apigee-service/bin/apigee-service apigee-zookeeper start
+      when:
+        inventory_hostname in groups.cassandra
+
+    - name: start managment server
+      shell:
+        cmd: /opt/apigee/apigee-service/bin/apigee-service edge-management-server start
+      when:
+        inventory_hostname in groups.mgmt
+
+    - name: start message processor
+      shell:
+        cmd: /opt/apigee/apigee-service/bin/apigee-service edge-message-processor start
+      when:
+        inventory_hostname in groups.rmp
+
+    - name: start postgres server
+      shell:
+        cmd: /opt/apigee/apigee-service/bin/apigee-service edge-postgres-server start
+      when:
+        inventory_hostname in groups.analytics
+
+    - name: start qpid server
+      shell:
+        cmd: /opt/apigee/apigee-service/bin/apigee-service edge-qpid-server start
+      when:
+        inventory_hostname in groups.analytics
+
+    - name: start router
+      shell:
+        cmd: /opt/apigee/apigee-service/bin/apigee-service edge-router start
+      when:
+        inventory_hostname in groups.rmp
+
+    - name: start ui
+      shell:
+        cmd: /opt/apigee/apigee-service/bin/apigee-service edge-ui start
+      when:
+        inventory_hostname in groups.mgmt
+
+  tags:
+    - start_apigee
+
+    

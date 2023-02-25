@@ -1,0 +1,30 @@
+---
+
+- name: create jks keystore
+  block:
+    
+    - name: copy cert files
+      copy:
+        src: "{{ item }}"
+        dest: /tmp
+        remote_src: false
+      with_items: 
+        - certs/{{ inventory_hostname }}/fullchain1.pem
+        - certs/{{ inventory_hostname }}/privkey1.pem
+
+    - name: create pkcs12 keystore
+      shell:
+        chdir: /tmp
+        cmd: "openssl pkcs12 -export -clcerts -in fullchain1.pem -inkey privkey1.pem -out keystore.pkcs12 -password pass:{{ keystore_pwd }}"
+
+    - name: convert pkcs12 keystore to jks keystore
+      shell:
+        chdir: /tmp
+        cmd: "keytool -importkeystore -srckeystore ./keystore.pkcs12 -srcstoretype pkcs12 -srcstorepass {{ keystore_pwd }} -destkeystore keystore.jks -deststoretype jks -deststorepass {{ keystore_pwd }}"
+
+  when:
+    -  inventory_hostname in groups.apigee
+
+  tags:
+    - install_all
+    - jks

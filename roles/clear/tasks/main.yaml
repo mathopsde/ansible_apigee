@@ -1,0 +1,46 @@
+- name: clear hosts
+  block:
+
+    - name: remove cloud-init files
+      file:
+        path: "/var/lib/vz/snippets/cloudinit_{{ item.key }}.yaml"
+        state: absent
+      loop: "{{apigee_hosts|dict2items}}"
+
+    - name: remove cloud-init files
+      file:
+        path: "/var/lib/vz/snippets/network_{{ item.key }}.yaml"
+        state: absent
+      loop: "{{apigee_hosts|dict2items}}"
+    
+    - name: get virtual maschines
+      shell:
+        cmd: "qm list|awk -F\" \" '{print $1}'"
+      register: vhosts
+
+    - name: get running virtual maschines
+      shell:
+        cmd: "qm list|grep running|awk -F\" \" '{print $1}'"
+      register: rvhosts
+
+    - name: stop virtual maschines
+      shell:
+        cmd: "qm stop {{ item.value.vmid }}"
+      loop: "{{apigee_hosts|dict2items}}"
+      ignore_errors: true
+      when:
+        - 'item.value.vmid|string in rvhosts.stdout_lines'
+
+    - name: destroy virtual maschines
+      shell:
+        cmd: "qm destroy {{ item.value.vmid }}"
+      loop: "{{apigee_hosts|dict2items}}"
+      ignore_errors: true
+      when:
+        - 'item.value.vmid|string in vhosts.stdout_lines'
+  
+  when:
+    - inventory_hostname in groups.proxmox
+
+  tags:
+    - clear

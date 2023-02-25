@@ -1,0 +1,15 @@
+network:
+  version: 1
+  config:
+    - type: physical
+      name: {{ main_interface }}
+      subnets:
+        - type: static
+          address: {{ item.value.ip }}/24
+          gateway: {{ gateway_ip }}
+    - type: nameserver
+      address:
+        - {{ nameserver_ip}}
+        - 8.8.8.8
+      search:
+        - {{ search_domains }}

@@ -1,0 +1,69 @@
+- name: create hosts
+  block:
+
+    - name: list hosts
+      run_once: true
+      debug:
+        var: apigee_hosts
+
+    - name: create cloud-init configs user
+      template:
+        src: cloudinit.yaml.j2
+        dest: "/var/lib/vz/snippets/cloudinit_{{ item.key }}.yaml"
+        #msg: "{{ item.value.memory }}"
+      loop: "{{apigee_hosts|dict2items}}"
+
+    - name: create cloud-init configs network
+      template:
+        src: network.yaml.j2
+        dest: "/var/lib/vz/snippets/network_{{ item.key }}.yaml"
+        #msg: "{{ item.value.memory }}"
+      loop: "{{apigee_hosts|dict2items}}"
+
+    - name: get virtual maschines
+      shell:
+        cmd: "qm list|awk -F\" \" '{print $1}'"
+      register: vhosts
+
+    - name: get running virtual maschines
+      shell:
+        cmd: "qm list|grep running|awk -F\" \" '{print $1}'"
+      register: rvhosts
+
+    #- debug: var=vhosts
+
+    - name: clone virtual maschines
+      shell:
+        cmd: "qm clone {{ host_tmpl }} {{ item.value.vmid }} --name {{ item.key }} --full 1 --storage {{ storage }}"
+      loop: "{{apigee_hosts|dict2items}}"
+      ignore_errors: true
+      when:
+        - 'item.value.vmid|string not in vhosts.stdout_lines'
+
+    - name: modify virtual maschines
+      shell:
+        cmd: "qm set {{ item.value.vmid }} --cores {{ item.value.cores }} --memory {{ item.value.memory }} --cicustom \"user=local:snippets/cloudinit_{{ item.key }}.yaml,network=local:snippets/network_{{ item.key }}.yaml\""
+      loop: "{{apigee_hosts|dict2items}}"
+
+    - name: start virtual maschines
+      shell:
+        cmd: "qm start {{ item.value.vmid }}"
+      loop: "{{apigee_hosts|dict2items}}"
+      ignore_errors: true
+      when:
+        - 'item.value.vmid|string not in rvhosts.stdout_lines'
+
+    # - name: wait for online
+    #   wait_for:
+    #     timeout: 180
+    #   delegate_to: localhost
+
+  when:
+    - inventory_hostname in groups.proxmox
+
+  tags:
+    #- install_all
+    - create_hosts
+
+
+  

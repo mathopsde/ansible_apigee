@@ -1,12 +1,12 @@
-- name: install analytics
+- name: install postgresql
   block:
 
-    - name: install analytics
+    - name: install postgresql
       throttle: 1
       shell:
         cmd: /opt/apigee/apigee-setup/bin/setup.sh -p ps -f /tmp/apigee/config.conf
   when: 
-    - inventory_hostname in groups.analytics
+    - inventory_hostname in groups.postgres
   tags:
     - install_all
-    - analytics
+    - postgres

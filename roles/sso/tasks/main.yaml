@@ -1,0 +1,55 @@
+- name: create certificates
+  block:
+
+    - name: create cert dir
+      file:
+        path: "{{ sso_ssl_path }}/jwt-keys"
+        state: directory
+
+    - name: create key file
+      openssl_privatekey:
+        path: "{{ sso_ssl_path }}/jwt-keys/privkey.pem"
+        size: 2048
+
+    - name: create public key
+      openssl_publickey:
+        path: "{{ sso_ssl_path }}/jwt-keys/pubkey.pem"
+        privatekey_path: "{{ sso_ssl_path }}/jwt-keys/privkey.pem"
+
+    - name: create idp dir
+      file:
+        path: "{{ sso_ssl_path }}/idp"
+        state: directory
+
+    - name: create key file
+      openssl_privatekey:
+        path: "{{ sso_ssl_path }}/idp/server.key"
+        size: 2048
+
+    - name: create csr
+      community.crypto.openssl_csr_pipe:
+        privatekey_path: "{{ sso_ssl_path }}/idp/server.key"
+        common_name: mathops.de
+        organization_name: MathOps
+        subject_alt_name:
+          - "DNS:mathops.de"
+          - "DNS:www.mathops.de"
+          - "DNS:docs.mathops.de"
+      register: csr
+
+    - name: Create self-signed certificate from CSR
+      community.crypto.x509_certificate:
+        path: "{{ sso_ssl_path }}/idp/certificate.pem"
+        csr_content: "{{ csr.csr }}"
+        privatekey_path: "{{ sso_ssl_path }}/idp/server.key"
+        provider: selfsigned
+
+    - name: install sso server
+      shell:
+        cmd: /opt/apigee/apigee-setup/bin/setup.sh -p sso -f /tmp/apigee/sso.conf
+    
+  when: 
+    - inventory_hostname in groups.mgmt
+
+  tags:
+    - sso

@@ -63,10 +63,6 @@ def run_module():
 
     if mode == 'create':
         apigee.createKeystore(org,env,keystore)
-        apigee.associateOrg(org, 'gateway')
-        apigee.addEnv(org, env)
-        apigee.addAdmin(org, orgadmin)
-        apigee.addAnalytics(org, env)
 
     if mode == 'delete':
         envs = apigee.getEnv(org)
