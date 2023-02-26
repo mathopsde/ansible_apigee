@@ -13,7 +13,7 @@
 
   - name: initial install
     shell:
-      cmd: bash /tmp/bootstrap_{{ apigee_version }}.sh apigeeuser=bundesk apigeepassword=oQfPmaY1F0RZ4fsi
+      cmd: bash /tmp/bootstrap_{{ apigee_version }}.sh apigeeuser={{ google_user }} apigeepassword={{ google_pwd }}
 
   - name: install setup util
     shell:
