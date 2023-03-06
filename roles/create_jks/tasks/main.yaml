@@ -15,15 +15,40 @@
     - name: create pkcs12 keystore
       shell:
         chdir: /tmp
-        cmd: "openssl pkcs12 -export -clcerts -in fullchain1.pem -inkey privkey1.pem -out keystore.pkcs12 -password pass:{{ keystore_pwd }}"
+        cmd: "openssl pkcs12 -export -clcerts -in fullchain1.pem -inkey privkey1.pem -out keystore.pkcs12 -password pass:{{ keystore_pwd }} -name devtest"
 
     - name: convert pkcs12 keystore to jks keystore
       shell:
         chdir: /tmp
-        cmd: "keytool -importkeystore -srckeystore ./keystore.pkcs12 -srcstoretype pkcs12 -srcstorepass {{ keystore_pwd }} -destkeystore keystore.jks -deststoretype jks -deststorepass {{ keystore_pwd }}"
+        cmd: "keytool -importkeystore -srckeystore ./keystore.pkcs12 -srcstoretype pkcs12 -srcstorepass {{ keystore_pwd }} -destkeystore /opt/apigee/customer/application/keystore.jks -deststoretype jks -deststorepass {{ keystore_pwd }} -alias devtest -noprompt"
 
+    - name: change owner
+      file:
+        path: /opt/apigee/customer/application/keystore.jks
+        owner: apigee
+        group: apigee
   when:
     -  inventory_hostname in groups.apigee
+
+- name: obfuscated password
+  block:
+    - name: get obfuscated password
+      expect:
+        timeout: 10
+        command: /opt/apigee/apigee-service/bin/apigee-service edge-management-server generate-obfuscated-password
+        responses: 
+            (.*)Enter password(.*): "murmel"
+            (.*)Confirm password(.*): "murmel"
+      register: obfuscated
+
+    - name: set obfuscated password
+      set_fact:
+        obfuscated_password: obfuscated.stdout_lines[2][-24:]
+
+    - debug: var=obfuscated_password
+  
+  when:
+    -  inventory_hostname in groups.mgmt
 
   tags:
     - install_all

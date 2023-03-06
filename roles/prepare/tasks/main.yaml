@@ -2,6 +2,14 @@
 - name: prepare
   block:
 
+    - name: update os
+      yum:
+        name: "*"
+        exclude:
+          - python36
+        state: latest
+        update_only: yes
+
     - name: install python
       dnf:
         name:
@@ -29,12 +37,6 @@
       loop:
         - { src: /usr/bin/python3.9, dest: /usr/bin/python3 }
         - { src: /usr/bin/python2.7, dest: /usr/bin/python }
-
-    - name: update os
-      yum:
-        name: "*"
-        state: latest
-        update_only: yes
 
     - name: disable firewall
       systemd:
